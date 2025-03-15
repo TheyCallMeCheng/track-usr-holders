@@ -5,12 +5,21 @@ import {
     SimpleTokenProcessor,
 } from "./types/eth/simpletoken.js"
 import { token } from "@sentio/sdk/utils"
-import { RESOLV_PROXY } from "./constants.js"
+import {
+    RESOLV_DECIMALS,
+    RESOLV_DEPLOY_BLOCK,
+    RESOLV_PROXY,
+    SUPERFORMROUTER,
+} from "./constants.js"
 import { User } from "./schema/store.js"
-
-const tokenCounter = Counter.register("token")
-const startBlock = 20005922
-const holderAmount = Gauge.register("holderAmount")
+import { superformrouter, SuperformRouterProcessor } from "./types/eth/index.js"
+import { address } from "@sentio/sdk/sui/builtin/0x1"
+import { event } from "@sentio/sdk/aptos/builtin/0x1"
+import {
+    CompletedEvent,
+    SingleDirectSingleVaultDepositCallObject,
+    SuperformRouterContext,
+} from "./types/eth/superformrouter.js"
 
 const transferEventHandler = async function (
     event: TransferEvent,
@@ -46,7 +55,30 @@ const transferEventHandler = async function (
         await ctx.store.upsert(to)
     }
 }
+const singleDirectVaultDepositHandler = async function (
+    event: superformrouter.SingleDirectSingleVaultDepositCallTrace,
+    ctx: SuperformRouterContext
+) {
+    const liqRequest = event.args.req_.superformData.liqRequest.token
+    if (liqRequest == RESOLV_PROXY) {
+        ctx.eventLogger.emit("deposit", {
+            distinctId: String(event.args.req_.superformData.superformId),
+            liqreq: liqRequest,
+            amount: scaleDown(
+                event.args.req_.superformData.amount,
+                RESOLV_DECIMALS
+            ),
+            from: event.args.req_.superformData.receiverAddress,
+        })
+    }
+}
 
 SimpleTokenProcessor.bind({
     address: RESOLV_PROXY,
+    startBlock: RESOLV_DEPLOY_BLOCK,
 }).onEventTransfer(transferEventHandler)
+
+SuperformRouterProcessor.bind({
+    address: SUPERFORMROUTER,
+    startBlock: RESOLV_DEPLOY_BLOCK,
+}).onCallSingleDirectSingleVaultDeposit(singleDirectVaultDepositHandler)
