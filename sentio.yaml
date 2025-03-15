@@ -6,3 +6,6 @@ contracts:
   - chain: "1"
     address: "0xEf4c4bcbE105170810B6Ef58A286d9CE97a1fABE"
     name: SimpleToken
+  - chain: "1"
+    address: "0xa195608C2306A26f727d5199D5A382a4508308DA"
+    name: SuperformRouter
