@@ -1,0 +1,8 @@
+project: sentio-track1
+contracts:
+  - chain: "1"
+    address: "0x31724cA0C982A31fbb5C57f4217AB585271fc9a5"
+    name: StakedTokenV1
+  - chain: "1"
+    address: "0xEf4c4bcbE105170810B6Ef58A286d9CE97a1fABE"
+    name: SimpleToken
