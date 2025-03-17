@@ -9,7 +9,7 @@ import {
     RESOLV_DECIMALS,
     RESOLV_DEPLOY_BLOCK,
     RESOLV_PROXY,
-    SUPERFORMROUTER,
+    SUPERFORM_ROUTER,
 } from "./constants.js"
 import { User } from "./schema/store.js"
 import { superformrouter, SuperformRouterProcessor } from "./types/eth/index.js"
@@ -79,6 +79,6 @@ SimpleTokenProcessor.bind({
 }).onEventTransfer(transferEventHandler)
 
 SuperformRouterProcessor.bind({
-    address: SUPERFORMROUTER,
+    address: SUPERFORM_ROUTER,
     startBlock: RESOLV_DEPLOY_BLOCK,
 }).onCallSingleDirectSingleVaultDeposit(singleDirectVaultDepositHandler)
