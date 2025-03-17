@@ -1,42 +1,16 @@
-import { BigDecimal, Counter, Gauge, scaleDown } from "@sentio/sdk"
-import {
-    TransferEvent,
-    SimpleTokenContext,
-    SimpleTokenProcessor,
-} from "./types/eth/simpletoken.js"
+import { BigDecimal, scaleDown } from "@sentio/sdk"
+import { TransferEvent, SimpleTokenContext, SimpleTokenProcessor } from "./types/eth/simpletoken.js"
 import { token } from "@sentio/sdk/utils"
-import {
-    RESOLV_DECIMALS,
-    RESOLV_DEPLOY_BLOCK,
-    RESOLV_PROXY,
-    SUPERFORM_ROUTER,
-} from "./constants.js"
+import { RESOLV_DECIMALS, RESOLV_DEPLOY_BLOCK, RESOLV_PROXY, SUPERFORM_ROUTER } from "./constants.js"
 import { User } from "./schema/store.js"
 import { superformrouter, SuperformRouterProcessor } from "./types/eth/index.js"
-import { address } from "@sentio/sdk/sui/builtin/0x1"
 import { event } from "@sentio/sdk/aptos/builtin/0x1"
-import {
-    CompletedEvent,
-    SingleDirectSingleVaultDepositCallObject,
-    SuperformRouterContext,
-} from "./types/eth/superformrouter.js"
+import { SuperformRouterContext } from "./types/eth/superformrouter.js"
 
-const transferEventHandler = async function (
-    event: TransferEvent,
-    ctx: SimpleTokenContext
-) {
+const transferEventHandler = async function (event: TransferEvent, ctx: SimpleTokenContext) {
     const tokenInfo = await token.getERC20TokenInfo(ctx, ctx.address)
-    const senderAmount = scaleDown(
-        await ctx.contract.balanceOf(event.args.from),
-        tokenInfo.decimal
-    )
-    const receiverAmount = scaleDown(
-        await ctx.contract.balanceOf(event.args.to),
-        tokenInfo.decimal
-    )
-
-    const fromStore = ctx.store.get(User, event.args.from)
-    const toStore = ctx.store.get(User, event.args.to)
+    const senderAmount = scaleDown(await ctx.contract.balanceOf(event.args.from), tokenInfo.decimal)
+    const receiverAmount = scaleDown(await ctx.contract.balanceOf(event.args.to), tokenInfo.decimal)
 
     if (senderAmount != BigDecimal(0)) {
         const from = new User({
@@ -64,10 +38,7 @@ const singleDirectVaultDepositHandler = async function (
         ctx.eventLogger.emit("deposit", {
             distinctId: String(event.args.req_.superformData.superformId),
             liqreq: liqRequest,
-            amount: scaleDown(
-                event.args.req_.superformData.amount,
-                RESOLV_DECIMALS
-            ),
+            amount: scaleDown(event.args.req_.superformData.amount, RESOLV_DECIMALS),
             from: event.args.req_.superformData.receiverAddress,
         })
     }
