@@ -1,4 +1,4 @@
-import { BigDecimal, scaleDown } from "@sentio/sdk"
+import { BigDecimal, LogLevel, scaleDown } from "@sentio/sdk"
 import { TransferEvent, SimpleTokenContext, SimpleTokenProcessor } from "./types/eth/simpletoken.js"
 import { token } from "@sentio/sdk/utils"
 import { RESOLV_DECIMALS, RESOLV_DEPLOY_BLOCK, RESOLV_PROXY, SUPERFORM_ROUTER } from "./constants.js"
@@ -33,13 +33,29 @@ const singleDirectVaultDepositHandler = async function (
     event: superformrouter.SingleDirectSingleVaultDepositCallTrace,
     ctx: SuperformRouterContext
 ) {
-    const liqRequest = event.args.req_.superformData.liqRequest.token
-    if (liqRequest == RESOLV_PROXY) {
-        ctx.eventLogger.emit("deposit", {
-            distinctId: String(event.args.req_.superformData.superformId),
-            liqreq: liqRequest,
-            amount: scaleDown(event.args.req_.superformData.amount, RESOLV_DECIMALS),
-            from: event.args.req_.superformData.receiverAddress,
+    try {
+        const liqRequest = event.args.req_.superformData.liqRequest.token
+        if (liqRequest == RESOLV_PROXY) {
+            ctx.eventLogger.emit("deposit", {
+                distinctID: event.args.req_.superformData.receiverAddress,
+                poolID: String(event.args.req_.superformData.superformId),
+                amount: scaleDown(event.args.req_.superformData.amount, RESOLV_DECIMALS),
+                message:
+                    "Superform deposit " +
+                    scaleDown(event.args.req_.superformData.amount, RESOLV_DECIMALS) +
+                    " RESOLV to pool " +
+                    event.args.req_.superformData.superformId +
+                    " from " +
+                    event.args.req_.superformData.receiverAddress,
+            })
+        }
+    } catch (e) {
+        ctx.eventLogger.emit("error", {
+            message: e.message,
+            stack: e.stack,
+            block: event.blockNumber,
+            hash: event.transactionHash,
+            severity: LogLevel.ERROR,
         })
     }
 }
